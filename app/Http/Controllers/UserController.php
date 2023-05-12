@@ -22,18 +22,18 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        if ($this->user->can('Menu User')):
-            $keyword = $request->has('keyword') ? $request->keyword:'';
-            $status = $request->has('status') ? $request->status:'';
+        if ($this->user->can('Menu User')) :
+            $keyword = $request->has('keyword') ? $request->keyword : '';
+            $status = $request->has('status') ? $request->status : '';
             $list_user = User::with(['perusahaan', 'roles', 'depo', 'gudang'])
-                        ->when($keyword <> '', function($q) use ($keyword) {
-                            return $q->where('name', 'like', "%{$keyword}%")
-                                    ->orWhere('email', 'like', "%{$keyword}%");
-                        })
-                        ->when($status <> '', function($q) use ($status) {
-                            return $q->where('status', $status);
-                        })
-                        ->orderBy('role', 'asc');
+                ->when($keyword <> '', function ($q) use ($keyword) {
+                    return $q->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('email', 'like', "%{$keyword}%");
+                })
+                ->when($status <> '', function ($q) use ($status) {
+                    return $q->where('status', $status);
+                })
+                ->orderBy('role', 'asc');
 
             $perPage = $request->has('per_page') ? $perPage = $request->per_page : $perPage = 'all';
 
@@ -45,7 +45,7 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Data Pengguna tidak ditemukan!'
             ], 404);
-        else:
+        else :
             return $this->Unauthorized();
         endif;
     }
@@ -59,18 +59,14 @@ class UserController extends Controller
 
         $user = User::find($id);
 
-        if(!$user)
-        {
+        if (!$user) {
             return response()->json(['message' => 'Data Tidak Ditemukan'], 404);
         }
 
-        try
-        {
+        try {
             $user->status = $statusArr[$user->status];
             $user->save();
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Data Gagal Diubah'], 500);
         }
 
@@ -79,7 +75,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        if ($this->user->can('Tambah User')):
+        if ($this->user->can('Tambah User')) :
             $this->validate($request, [
                 'name'      => 'required|max:255|min:2',
                 'email'     => 'required|email|unique:users|max:190',
@@ -89,7 +85,7 @@ class UserController extends Controller
                 'roles'     => 'required',
                 'nik'       => 'max:16|nullable',
                 'depo'      => 'required',
-                'perusahaan'=> 'required'
+                'perusahaan' => 'required'
             ]);
 
 
@@ -105,11 +101,10 @@ class UserController extends Controller
                 $user->depo()->attach($request->depo);
                 $user->gudang()->attach($request->gudang);
 
-                if($user->hasRole('Kepala Gudang')) {
+                if ($user->hasRole('Kepala Gudang')) {
                     $data_kepala_gudang['user_id'] = $user->id;
                     $kepala_gudang = KepalaGudang::create($data_kepala_gudang);
-                }
-                elseif($user->hasRole('Driver')) {
+                } elseif ($user->hasRole('Driver')) {
                     $data_driver['user_id'] = $user->id;
                     $driver = Driver::insert($data_driver);
                 }
@@ -120,7 +115,7 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Data Pegguna berhasil disimpan.'
             ], 201);
-        else:
+        else :
             return $this->Unauthorized();
         endif;
     }
@@ -129,8 +124,8 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        if($this->user->hasRole('Salesman') || $this->user->hasRole('Salesman Canvass')){
-            if($this->user->id != $id){
+        if ($this->user->hasRole('Salesman') || $this->user->hasRole('Salesman Canvass')) {
+            if ($this->user->id != $id) {
                 return response()->json([
                     'message' => 'Anda tidak berhak untuk mengubah profil pengguna lain!'
                 ], 400);
@@ -147,7 +142,7 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        if ($this->user->can('Update User')):
+        if ($this->user->can('Update User')) :
             $this->validate($request, [
                 'name'      => 'required|max:255|min:2',
                 'email'     => 'required|email|max:190|unique:users,email,' . $id,
@@ -156,7 +151,7 @@ class UserController extends Controller
                 'roles'     => 'required',
                 'nik'       => 'max:16|nullable',
                 'depo'      => 'required',
-                'perusahaan'=> 'required'
+                'perusahaan' => 'required'
             ]);
 
             $user = User::find($id);
@@ -177,17 +172,17 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Data Pengguna tidak ditemukan.'
             ], 404);
-        else:
+        else :
             return $this->Unauthorized();
         endif;
     }
 
     public function destroy($id)
     {
-        if ($this->user->can('Hapus User')):
+        if ($this->user->can('Hapus User')) :
             $user = User::find($id);
 
-            if($user) {
+            if ($user) {
                 $user->delete();
                 return response()->json([
                     'message' => 'Data Pengguna berhasil dihapus.'
@@ -197,17 +192,17 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Data Pengguna tidak ditemukan!'
             ], 404);
-        else:
+        else :
             return $this->Unauthorized();
         endif;
     }
 
     public function restore($id)
     {
-        if ($this->user->can('Tambah User')):
+        if ($this->user->can('Tambah User')) :
             $user = User::withTrashed()->find($id);
 
-            if($user) {
+            if ($user) {
                 $user->restore();
                 return response()->json([
                     'message' => 'Data Pengguna berhasil dikembalikan.'
@@ -217,7 +212,7 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Data Pengguna tidak ditemukan!'
             ], 404);
-        else:
+        else :
             return $this->Unauthorized();
         endif;
     }
@@ -225,32 +220,33 @@ class UserController extends Controller
     public function change_password(Request $request, $id)
     {
         // if ($this->user->can('Update User')):
-            $user = User::findOrFail($id);
-            $this->validate($request, [
-                'password' => 'required|confirmed|min:6|max:30',
-            ]);
+        $user = User::findOrFail($id);
+        $this->validate($request, [
+            'password' => 'required|confirmed|min:6|max:30',
+        ]);
 
-            $input = $request->except(['password_confirmation']);
+        $input = $request->except(['password_confirmation']);
 
-            $input['password'] = app('hash')->make($input['password']);
+        $input['password'] = app('hash')->make($input['password']);
 
-            if ($user) {
-                $user->update($input);
-
-                return response()->json([
-                    'message' => 'Password Pengguna telah berhasil diubah.'
-                ], 201);
-            }
+        if ($user) {
+            $user->update($input);
 
             return response()->json([
-                'message' => 'Data Pengguna tidak ditemukan.'
-            ], 404);
+                'message' => 'Password Pengguna telah berhasil diubah.'
+            ], 201);
+        }
+
+        return response()->json([
+            'message' => 'Data Pengguna tidak ditemukan.'
+        ], 404);
         // else:
         //     return $this->Unauthorized();
         // endif;
     }
 
-    public function changeMyPassword(Request $request){
+    public function changeMyPassword(Request $request)
+    {
         $input = $request->except(['password_confirmation']);
         $user = User::findOrFail($this->user->id);
 
@@ -279,7 +275,7 @@ class UserController extends Controller
     {
         if ($this->user->can('Update user')) {
             $this->validate($request, [
-                'user_id'=> 'required|exists:users,id',
+                'user_id' => 'required|exists:users,id',
                 'roles'  => 'required'
             ]);
 

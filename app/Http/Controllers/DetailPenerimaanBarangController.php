@@ -9,7 +9,7 @@ use App\Models\PenerimaanBarang;
 use App\Models\HargaBarang;
 use App\Http\Resources\PenerimaanBarang as PenerimaanBarangResource;
 use App\Http\Resources\DetailPenerimaanBarang as DetailPenerimaanBarangResource;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DetailPenerimaanBarangController extends Controller
 {

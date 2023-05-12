@@ -17,7 +17,7 @@ use App\Http\Resources\DetailPengeluaranBarang as DetailPengeluaranBarangResourc
 use App\Http\Resources\PenjualanPengiriman as PenjualanPengirimanResource;
 use App\Http\Resources\DetailPengeluaranBarang2 as DetailPengeluaranBarang2Resource;
 use App\Http\Resources\DetailPenjualanPengiriman as DetailPenjualanPengirimanResource;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PengeluaranBarangController extends Controller
 {
@@ -105,7 +105,7 @@ class PengeluaranBarangController extends Controller
         $input = $request->all();
         // $input['id_gudang'] = Driver::find($request->id_driver)->tim->depo->id_gudang;
         $input['created_by'] = $this->user->id;
-            
+
         try {
             $pengeluaran_barang = Pengiriman::create($input);
         } catch (\Exception $e) {
@@ -146,12 +146,12 @@ class PengeluaranBarangController extends Controller
 
         if ($pengeluaran_barang) {
             $pengeluaran_barang->update($input);
-            
+
             $list_pengiriman = Pengiriman::with(['gudang', 'driver.user', 'kendaraan'])->latest();;
             $perPage = $request->has('per_page') ? $perPage = $request->per_page : $perPage = 'all';
             $list_pengiriman = $perPage == 'all' ? $list_pengiriman->get() : $list_pengiriman->paginate((int)$perPage);
             $new_list_pengiriman = PengirimanResource::collection($list_pengiriman);
-    
+
             return response()->json([
                 'message' => 'Data Pengeluaran Barang telah berhasil diubah.',
                 'data' => $new_list_pengiriman
@@ -178,7 +178,7 @@ class PengeluaranBarangController extends Controller
                 'message' => 'Kosongkan detail pengeluaran barang terlebih dahulu!'
             ], 422);
         }
-        
+
         if($pengeluaran_barang) {
             $data = ['deleted_by' => $this->user->id];
             $pengeluaran_barang->update($data);
@@ -209,7 +209,7 @@ class PengeluaranBarangController extends Controller
         }
 
         $pengeluaran_barang = Pengiriman::withTrashed()->find($id);
-        
+
         if($pengeluaran_barang) {
             $data = ['deleted_by' => null];
             $pengeluaran_barang->update($data);
@@ -292,11 +292,11 @@ class PengeluaranBarangController extends Controller
                 'message' => 'Data Pengeluaran Barang masih kosong, isi data barang terlebih dahulu.'
             ], 422);
         }
-        
+
         $pengeluaran_barang->status = 'approved';
         $pengeluaran_barang->save();
 
-        
+
         // $list_pengiriman = Pengiriman::with(['gudang', 'driver.user', 'kendaraan'])->find($id);
         // $list_pengiriman = Pengiriman::with(['gudang', 'driver.user', 'kendaraan'])->latest();
         // $perPage = $request->has('per_page') ? $perPage = $request->per_page : $perPage = 'all';
@@ -416,7 +416,7 @@ class PengeluaranBarangController extends Controller
     //         $stock->qty_pcs = $stock->qty_pcs - $dpj->qty_pcs;
     //         $stock->save();
     //     }
-        
+
     //     //set status penjualan dari approved menjadi loaded
     //     foreach($id_penjualan as $ip){
     //         Penjualan::where('id', $ip)->where('status', 'approved')->update(['status' => 'loaded', 'updated_by' => $this->user->id]);
@@ -441,7 +441,7 @@ class PengeluaranBarangController extends Controller
     //     $pengiriman = Pengiriman::with('gudang', 'kendaraan', 'driver.user')->find($id);
     //     $now = \Carbon\Carbon::now();
     //     $list_penjualan = Penjualan::with(['toko','salesman', 'detail_penjualan'])->where('id_pengiriman', $id)->whereIn('status', ['approved','loaded', 'delivered'])->oldest()->get();
-                
+
     //     $pdf = PDF::loadView('pdf.pengiriman_pdf', compact('pengiriman', 'now', 'list_penjualan'))->setPaper('letter', 'portrait');
     //     return $pdf->stream('pengiriman-' . $id . '.pdf');
     // }
@@ -459,7 +459,7 @@ class PengeluaranBarangController extends Controller
         $generated_by = ucwords($this->user->name);
 
         $list_penjualan = Penjualan::with(['toko','salesman', 'detail_penjualan'])->where('id_pengiriman', $id)->whereIn('status', ['approved','loaded', 'delivered'])->oldest()->get();
-        
+
         $list_detail_pengeluaran_barang = \DB::table('detail_pengeluaran_barang')
                                 ->where('id_pengiriman', $id)
                                 ->join('stock', 'stock.id', '=', 'detail_pengeluaran_barang.id_stock')

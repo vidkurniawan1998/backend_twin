@@ -9,7 +9,7 @@ use App\Models\DetailMutasiBarang;
 use App\Models\MutasiBarang;
 use App\Http\Resources\MutasiBarang as MutasiBarangResource;
 use App\Http\Resources\DetailMutasiBarang as DetailMutasiBarangResource;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DetailMutasiBarangController extends Controller
 {
